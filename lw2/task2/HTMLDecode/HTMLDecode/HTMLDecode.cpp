@@ -4,33 +4,39 @@
 
 using namespace std;
 
-const map<string, string> DICTIONARY_OF_ENTITY = {
-    {"&quot;", "\""},
-    {"&apos;", "\'"},
-    {"&lt;", "<"},
-    {"&qt;", ">"},
-    {"&amp;", "&"}
+const map<string, char> HTML_ENTITY_MAP = {
+    {"&quot;", '\"'},
+    {"&apos;", '\''},
+    {"&lt;", '<'},
+    {"&qt;", '>'},
+    {"&amp;", '&'}
+};
+const char AMP = '&';
+
+void CheckSubtring(string const& html, unsigned& pos, char& tmpCh)
+{
+    for (auto& infoEntity : HTML_ENTITY_MAP)
+    {
+        if (html.substr(pos, infoEntity.first.length()) == infoEntity.first)
+        {
+            tmpCh = infoEntity.second;
+            pos += infoEntity.first.length() - 1;
+            break;
+        }
+    }
 };
 
 string HTMLDecode(string const& html)
 {
     string decodedStr;
 
-    for (int i = 0; i < html.length(); i++)
+    for (unsigned i = 0; i < html.length(); i++)
     {
-        if (html[i] == '&')
+        if (html[i] == AMP)
         {
-            string tmpStr = "&";
-            for (auto& infoEntity : DICTIONARY_OF_ENTITY)
-            {
-                if (html.substr(i, infoEntity.first.length()) == infoEntity.first)
-                {
-                    tmpStr = infoEntity.second;
-                    i += infoEntity.first.length() - 1;
-                    break;
-                }
-            }
-            decodedStr += tmpStr;
+            char tmpCh = AMP;
+            CheckSubtring(html, i, tmpCh);
+            decodedStr += tmpCh;
         }
         else
         {

@@ -40,7 +40,7 @@ std::vector<double> MultiplyMinElement(std::vector<double>& nums)
 
 void PrintNums(std::vector<double> const& nums)
 {
-    for_each(nums.begin(), nums.end(), [](double num)
+    for_each(nums.cbegin(), nums.cend(), [](double num)
         {
             std::cout << num << std::endl;
         });
