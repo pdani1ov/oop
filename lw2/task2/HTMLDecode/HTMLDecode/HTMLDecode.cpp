@@ -13,7 +13,7 @@ const map<string, char> HTML_ENTITY_MAP = {
 };
 const char AMP = '&';
 
-void CheckSubtring(string const& html, unsigned& pos, char& tmpCh)
+void CheckSubstring(string const& html, unsigned& pos, char& tmpCh)
 {
     for (auto& infoEntity : HTML_ENTITY_MAP)
     {
@@ -35,7 +35,7 @@ string HTMLDecode(string const& html)
         if (html[i] == AMP)
         {
             char tmpCh = AMP;
-            CheckSubtring(html, i, tmpCh);
+            CheckSubstring(html, i, tmpCh);
             decodedStr += tmpCh;
         }
         else
