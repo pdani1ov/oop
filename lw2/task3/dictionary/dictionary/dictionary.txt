@@ -1,0 +1,3 @@
+cat кот
+dog пёс
+lesson урок
