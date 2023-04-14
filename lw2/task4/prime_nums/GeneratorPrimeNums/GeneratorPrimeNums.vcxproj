@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{7da5f25e-979d-44e6-ba5e-c7816da0f162}</ProjectGuid>
-    <RootNamespace>GeneratorPrimeNumbers</RootNamespace>
+    <ProjectGuid>{8087053f-574d-4049-9443-227109571b5a}</ProjectGuid>
+    <RootNamespace>GeneratorPrimeNums</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

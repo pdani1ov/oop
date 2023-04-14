@@ -1,5 +1,13 @@
 #include "GeneratorPrimeNums.h"
 
+void RemoveMultiples(std::vector<bool>& sieve, int& num, const int& upperBound)
+{
+    for (int j = 3 * num; j <= upperBound; j += 2 * num)
+    {
+        sieve[j] = false;
+    }
+};
+
 std::set<int> GeneratePrimeNumbersSet(int upperBound)
 {
     std::set<int> primeNums;
@@ -11,7 +19,7 @@ std::set<int> GeneratePrimeNumbersSet(int upperBound)
 
     primeNums.insert(2);
 
-    std::vector<int> sieve(upperBound + 1, true);
+    std::vector<bool> sieve(upperBound + 1, true);
 
     for (int i = 4; i < upperBound; i += 2)
     {
@@ -22,17 +30,16 @@ std::set<int> GeneratePrimeNumbersSet(int upperBound)
 
     for (int i = 3; i <= upperBound; i += 2)
     {
-        if (sieve[i])
+        if (!sieve[i])
         {
-            primeNums.insert(i);
+            continue;
+        }
 
-            if (i <= sqrtUpperBound)
-            {
-                for (int j = 3 * i; j <= upperBound; j += 2 * i)
-                {
-                    sieve[j] = false;
-                }
-            }
+        primeNums.insert(i);
+
+        if (i <= sqrtUpperBound)
+        {
+            RemoveMultiples(sieve, i, upperBound);
         }
     }
 
