@@ -9,20 +9,6 @@ const std::string ERROR_MSG_INVALID_NUM = "Incorrect number is entered";
 const int QUANTITY_ARGS = 2;
 const std::string ERROR_MSG_ARGS = "Incorrect quantity of arguments is entered";
 
-int ConvertStringToInt(const std::string& textNumber)
-{
-    try
-    {
-        int num = std::stoi(textNumber);
-        return num;
-    }
-    catch (std::invalid_argument const& e)
-    {
-        std::cout << e.what() << std::endl;
-        return -1;
-    }
-};
-
 struct Args
 {
     int upperBound;
@@ -37,9 +23,16 @@ std::optional<Args> ParseArgs(int argc, char* argv[])
     }
 
     Args args;
-    args.upperBound = ConvertStringToInt(argv[1]);
-
-    return args;
+    try
+    {
+        args.upperBound = std::stoi(argv[1]);
+        return args;
+    }
+    catch (const std::invalid_argument& e)
+    {
+        std::cout << e.what() << std::endl;
+        return std::nullopt;
+    }
 };
 
 int main(int argc, char* argv[])

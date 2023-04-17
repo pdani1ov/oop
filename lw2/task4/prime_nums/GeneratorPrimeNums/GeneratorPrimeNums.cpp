@@ -8,6 +8,14 @@ void RemoveMultiples(std::vector<bool>& sieve, int& num, const int& upperBound)
     }
 };
 
+void RemoveEven(std::vector<bool>& sieve, const int& upperBound)
+{
+    for (int i = 4; i < upperBound; i += 2)
+    {
+        sieve[i] = false;
+    }
+}
+
 std::set<int> GeneratePrimeNumbersSet(int upperBound)
 {
     std::set<int> primeNums;
@@ -21,10 +29,7 @@ std::set<int> GeneratePrimeNumbersSet(int upperBound)
 
     std::vector<bool> sieve(upperBound + 1, true);
 
-    for (int i = 4; i < upperBound; i += 2)
-    {
-        sieve[i] = false;
-    }
+    RemoveEven(sieve, upperBound);
 
     int sqrtUpperBound = sqrt(upperBound);
 
