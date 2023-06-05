@@ -15,7 +15,7 @@ CDate::CDate(unsigned day, Month month, unsigned year)
 
 	m_days = -1;
 	m_days += CountDaysInYears(year);
-	m_days += CountDaysInMonths(static_cast<int>(month), year);
+	m_days += CountDaysInMonths(month, year);
 	m_days += day;
 
 	if (year > MAX_YEAR)
@@ -28,10 +28,7 @@ CDate::CDate(unsigned timestamp)
 	:m_days(timestamp),
 	m_valid(true)
 {
-	if (m_days > MAX_DAYS)
-	{
-		m_valid = false;
-	}
+	m_valid = m_days <= MAX_DAYS;
 };
 
 unsigned CDate::GetYear() const
@@ -45,9 +42,10 @@ unsigned CDate::GetYear() const
 	int days = m_days;
 	while (days >= 0)
 	{
-		if (year % 4 == 0)
+		//4 вынести в константу
+		if (CheckLeapYear(year))
 		{
-			days -= QUANTITY_DAYS_HIGH_YEAR;
+			days -= QUANTITY_DAYS_LEAP_YEAR;
 		}
 		else
 		{
@@ -75,15 +73,15 @@ Month CDate::GetMonth() const
 	days -= CountDaysInYears(year);
 
 	int month = 1;
-	while (days >= 0 and month <= 12)
+	while (days >= 0 and month <= QUANTITY_MONTH)
 	{
-		if (year % 4 == 0 && month == 2)
+		if (CheckLeapYear(year) && month == 2)
 		{
-			days -= 29;
+			days -= QUANTITY_DAYS_FEBRUARY_LEAP_YEAR;
 		}
 		else
 		{
-			days -= CountQuantityDaysInMonth(month);
+			days -= CountQuantityDaysInMonth(static_cast<Month>(month));
 		}
 		month++;
 	}
@@ -104,7 +102,7 @@ unsigned CDate::GetDay() const
 	int days = m_days + 1;
 
 	days -= CountDaysInYears(year);
-	days -= CountDaysInMonths(static_cast<int>(month), year);
+	days -= CountDaysInMonths(month, year);
 
  	return days;
 };
@@ -116,8 +114,8 @@ WeekDay CDate::GetWeekDay() const
 		throw "Invalid date";
 	}
 
-	int weekDay = 4 + m_days % 7;
-	return static_cast<WeekDay>(weekDay % 7);
+	int weekDay = WEEKDAY_MIN_DAY + m_days % QUANTITY_WEEKDAY;
+	return static_cast<WeekDay>(weekDay % QUANTITY_WEEKDAY);
 };
 
 bool CDate::IsValid() const
@@ -125,44 +123,44 @@ bool CDate::IsValid() const
 	return m_valid;
 };
 
-unsigned CDate::CountQuantityDaysInMonth(int const& numMonth) const
+unsigned CDate::CountQuantityDaysInMonth(Month month) const
 {
-	switch (numMonth)
+	switch (month)
 	{
-	case 1:
+	case Month::JANUARY:
 		return 31;
 		break;
-	case 2:
+	case Month::FEBRUARY:
 		return 28;
 		break;
-	case 3:
+	case Month::MARCH:
 		return 31;
 		break;
-	case 4:
+	case Month::APRIL:
 		return 30;
 		break;
-	case 5:
+	case Month::MAY:
 		return 31;
 		break;
-	case 6:
+	case Month::JUNE:
 		return 30;
 		break;
-	case 7:
+	case Month::JULY:
 		return 31;
 		break;
-	case 8:
+	case Month::AUGUST:
 		return 31;
 		break;
-	case 9:
+	case Month::SEPTEMBER:
 		return 30;
 		break;
-	case 10:
+	case Month::OCTOBER:
 		return 31;
 		break;
-	case 11:
+	case Month::NOVEMBER:
 		return 30;
 		break;
-	case 12:
+	case Month::DECEMBER:
 		return 31;
 		break;
 	default:
@@ -170,21 +168,27 @@ unsigned CDate::CountQuantityDaysInMonth(int const& numMonth) const
 		return 0;
 		break;
 	}
+}
+
+bool CDate::CheckLeapYear(int year) const
+{
+	return (year % MULTIPLICITY_LEAP_YEAR == 0 && year % CENTURY != 0) || (year % MULTIPLICITY_CENTURY_LEAP_YEAR == 0);
 };
 
-int CDate::CountDaysInMonths(int const& month, int const& year) const
+int CDate::CountDaysInMonths(Month month, int year) const
 {
 	int days = 0;
+	int currentMonth = static_cast<int>(month);
 
-	for (int m = 1; m < month; m++)
+	for (int m = 1; m < currentMonth; m++)
 	{
-		if (year % 4 == 0 && m == 2)
+		if (CheckLeapYear(year) && m == 2)
 		{
-			days += 29;
+			days += QUANTITY_DAYS_FEBRUARY_LEAP_YEAR;
 		}
 		else
 		{
-			days += CountQuantityDaysInMonth(m);
+			days += CountQuantityDaysInMonth(static_cast<Month>(m));
 		}
 	}
 
@@ -197,9 +201,9 @@ int CDate::CountDaysInYears(int year) const
 
 	for (int y = MIN_YEAR; y < year; y++)
 	{
-		if (y % 4 == 0)
+		if (CheckLeapYear(y))
 		{
-			days += QUANTITY_DAYS_HIGH_YEAR;
+			days += QUANTITY_DAYS_LEAP_YEAR;
 		}
 		else
 		{
@@ -212,9 +216,9 @@ int CDate::CountDaysInYears(int year) const
 
 bool CDate::CheckRangeDaysMonth(unsigned day, Month month, unsigned year)
 {
-	if (month == Month::FEBRUARY && year % 4 == 0)
+	if (month == Month::FEBRUARY && CheckLeapYear(year))
 	{
-		if (day >= 1 && day <= 29)
+		if (day >= 1 && day <= QUANTITY_DAYS_FEBRUARY_LEAP_YEAR)
 		{
 			return true;
 		}
@@ -222,7 +226,7 @@ bool CDate::CheckRangeDaysMonth(unsigned day, Month month, unsigned year)
 	}
 	else
 	{
-		if (day >= 1 && day <= CountQuantityDaysInMonth(static_cast<int>(month)))
+		if (day >= 1 && day <= CountQuantityDaysInMonth(month))
 		{
 			return true;
 		}
@@ -230,157 +234,34 @@ bool CDate::CheckRangeDaysMonth(unsigned day, Month month, unsigned year)
 	}
 };
 
-bool operator==(CDate const& date1, CDate const& date2)
+bool CDate::operator<(CDate const& date) const
 {
-	if (!date1.IsValid() || !date2.IsValid())
-	{
-		throw "Cannot compare invalid dates";
-	};
-
-	return date1.GetDay() == date2.GetDay() 
-		&& date1.GetMonth() == date2.GetMonth() 
-		&& date1.GetYear() == date2.GetYear();
+	return m_days < date.m_days;
 };
 
-
-bool operator!=(CDate const& date1, CDate const& date2)
+bool CDate::operator<=(CDate const& date) const
 {
-	if (!date1.IsValid() || !date2.IsValid())
-	{
-		throw "Cannot compare invalid dates";
-	};
-
-	return date1.GetDay() != date2.GetDay() 
-		|| date1.GetMonth() != date2.GetMonth() 
-		|| date1.GetYear() != date2.GetYear();
+	return m_days <= date.m_days;
 };
 
-bool operator>(CDate const& date1, CDate const& date2)
+bool CDate::operator==(CDate const& date) const
 {
-	if (!date1.IsValid() || !date2.IsValid())
-	{
-		throw "Cannot compare invalid dates";
-	};
-
-	if (date1.GetYear() > date2.GetYear())
-	{
-		return true;
-	}
-	else if (date1.GetYear() == date2.GetYear())
-	{
-		if (date1.GetMonth() > date2.GetMonth())
-		{
-			return true;
-		}
-		else if (date1.GetMonth() == date2.GetMonth())
-		{
-			return date1.GetDay() > date2.GetDay();
-		}
-		else
-		{
-			return false;
-		}
-	}
-	else
-	{
-		return false;
-	}
+	return m_days == date.m_days;
 };
 
-bool operator<(CDate const& date1, CDate const& date2)
+bool CDate::operator!=(CDate const& date) const
 {
-	if (!date1.IsValid() || !date2.IsValid())
-	{
-		throw "Cannot compare invalid dates";
-	};
-
-	if (date1.GetYear() < date2.GetYear())
-	{
-		return true;
-	}
-	else if (date1.GetYear() == date2.GetYear())
-	{
-		if (date1.GetMonth() < date2.GetMonth())
-		{
-			return true;
-		}
-		else if (date1.GetMonth() == date2.GetMonth())
-		{
-			return date1.GetDay() < date2.GetDay();
-		}
-		else
-		{
-			return false;
-		}
-	}
-	else
-	{
-		return false;
-	}
+	return m_days != date.m_days;
 };
 
-bool operator>=(CDate const& date1, CDate const& date2)
+bool CDate::operator>(CDate const& date) const
 {
-	if (!date1.IsValid() || !date2.IsValid())
-	{
-		throw "Cannot compare invalid dates";
-	};
-
-	if (date1.GetYear() > date2.GetYear())
-	{
-		return true;
-	}
-	else if (date1.GetYear() == date2.GetYear())
-	{
-		if (date1.GetMonth() > date2.GetMonth())
-		{
-			return true;
-		}
-		else if (date1.GetMonth() == date2.GetMonth())
-		{
-			return date1.GetDay() >= date2.GetDay();
-		}
-		else
-		{
-			return false;
-		}
-	}
-	else
-	{
-		return false;
-	}
+	return m_days > date.m_days;
 };
 
-bool operator<=(CDate const& date1, CDate const& date2)
+bool CDate::operator>=(CDate const& date) const
 {
-	if (!date1.IsValid() || !date2.IsValid())
-	{
-		throw "Cannot compare invalid dates";
-	};
-
-	if (date1.GetYear() < date2.GetYear())
-	{
-		return true;
-	}
-	else if (date1.GetYear() == date2.GetYear())
-	{
-		if (date1.GetMonth() < date2.GetMonth())
-		{
-			return true;
-		}
-		else if (date1.GetMonth() == date2.GetMonth())
-		{
-			return date1.GetDay() <= date2.GetDay();
-		}
-		else
-		{
-			return false;
-		}
-	}
-	else
-	{
-		return false;
-	}
+	return m_days >= date.m_days;
 };
 
 CDate& CDate::operator-=(int i)
@@ -447,7 +328,7 @@ int CDate::operator-(CDate const& date)
 	{
 		int days = m_days + 1;
 		days -= CountDaysInYears(date.GetYear());
-		days -= CountDaysInMonths(static_cast<int>(date.GetMonth()), date.GetYear());
+		days -= CountDaysInMonths(date.GetMonth(), date.GetYear());
 		days -= date.GetDay();
 		return days;
 	}

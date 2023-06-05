@@ -5,6 +5,7 @@
 Список тестов:
 Инициальзация даты, указывая день, месяц, год
 Инициализация даты, указывая количество дней от 1 января 1970 года
+Проверяем, что будет происходить, когда у недопустимой даты проверям день, месяц, год
 Проверяем, что у даты есть день, месяц, год
 Смотрим, в какой день недели была данная дата
 Проверяем перевод даты на следующий день с помощью префиксной и постфиксной формы ++
@@ -19,6 +20,15 @@
 Проверяем, что в ходе операций, если дата выходит из диапазона допустимых значений, то она становится недопустимой
 */
 
+/*Замечания:
+Покрытие исключений +
+Разбить на отдельные тесты операции сравнения +
+Передавать month в методах +
+Сделать операторы сравнения внутри класса +
+Вынести неизвестные числа в константы +
+Подшаманить оператор ввода из потока ввода +
+*/
+
 TEST_CASE("Check invalid initialization date")
 {
 	/*Инициальзация даты, указывая день, месяц, год*/
@@ -27,12 +37,81 @@ TEST_CASE("Check invalid initialization date")
 	CDate invalidDate2(3000000);
 	REQUIRE(!invalidDate1.IsValid());
 	REQUIRE(!invalidDate2.IsValid());
+
+	try
+	{
+		CDate invalidDate(31, Month::DECEMBER, 1969);
+	}
+	catch (const char* str)
+	{
+		REQUIRE(str == "When initialized, the year of the date must be at least 1970");
+	}
+
+	try
+	{
+		CDate invalidDate(32, Month::DECEMBER, 1970);
+	}
+	catch (const char* str)
+	{
+		REQUIRE(str == "The day is out of range for the month");
+	}
+
+	try
+	{
+		CDate invalidDate(32, Month::FEBRUARY, 1972);
+	}
+	catch (const char* str)
+	{
+		REQUIRE(str == "The day is out of range for the month");
+	}
+};
+
+TEST_CASE("Check invalid date has day, month, year, weekday")
+{
+	/*Проверяем, что будет происходить, когда у недопустимой даты проверям день, месяц, год*/
+	CDate invalidDate(1, Month::JANUARY, 10000);
+
+	try
+	{
+		invalidDate.GetDay();
+	}
+	catch (const char* str)
+	{
+		REQUIRE(str == "Invalid date");
+	}
+
+	try
+	{
+		invalidDate.GetMonth();
+	}
+	catch (const char* str)
+	{
+		REQUIRE(str == "Invalid date");
+	}
+
+	try
+	{
+		invalidDate.GetYear();
+	}
+	catch (const char* str)
+	{
+		REQUIRE(str == "Invalid date");
+	}
+
+	try
+	{
+		invalidDate.GetWeekDay();
+	}
+	catch (const char* str)
+	{
+		REQUIRE(str == "Invalid date");
+	}
 };
 
 TEST_CASE("Check valid initialization date")
 {
 	/*Инициальзация даты, указывая день, месяц, год*/
-	CDate date1(2, Month::OCTOBER, 1972);
+	CDate date1(28, Month::FEBRUARY, 1972);
 	REQUIRE(date1.IsValid());
 
 	/*Инициализация даты, указывая количество дней от 1 января 1970 года */
@@ -41,8 +120,8 @@ TEST_CASE("Check valid initialization date")
 
 	/*Проверяем, что у даты есть день, месяц, год*/
 	//Эти даты хранят 2 января 1970 года
-	REQUIRE(date1.GetDay() == 2);
-	REQUIRE(date1.GetMonth() == Month::OCTOBER);
+	REQUIRE(date1.GetDay() == 28);
+	REQUIRE(date1.GetMonth() == Month::FEBRUARY);
 	REQUIRE(date1.GetYear() == 1972);
 
 	REQUIRE(date2.GetDay() == 2);
@@ -125,26 +204,69 @@ TEST_CASE("Check operator + and -")
 	date = date3 + 1;
 	int difference = date - date1;
 	REQUIRE(difference == 0);
+	date1 = date + 1;
+	REQUIRE(!date1.IsValid());
+	date2 = date - 1;
+	REQUIRE(!date2.IsValid());
+	date = date2 - 3;
 };
 
-TEST_CASE("Check operator <, >, <=, >=, ==, !=")
+TEST_CASE("Check operator <")
+{
+	CDate date1(3, Month::JANUARY, 1970);
+	CDate date2(5, Month::JANUARY, 1970);
+	/*Проверка операторов сравнения*/
+	REQUIRE(date1 < date2);
+	REQUIRE(!(date2 < date1));
+};
+
+TEST_CASE("Check operator <=")
 {
 	CDate date1(3, Month::JANUARY, 1970);
 	CDate date2(5, Month::JANUARY, 1970);
 	CDate date3(3, Month::JANUARY, 1970);
 	/*Проверка операторов сравнения*/
-	REQUIRE(date1 < date2);
-	REQUIRE(!(date2 < date1));
-	REQUIRE(date2 > date1);
-	REQUIRE(!(date1 > date2));
 	REQUIRE(date1 <= date2);
 	REQUIRE(date1 <= date3);
 	REQUIRE(!(date2 <= date1));
+};
+
+TEST_CASE("Check operator >")
+{
+	CDate date1(3, Month::JANUARY, 1970);
+	CDate date2(5, Month::JANUARY, 1970);
+	/*Проверка операторов сравнения*/
+	REQUIRE(date2 > date1);
+	REQUIRE(!(date1 > date2));
+};
+
+TEST_CASE("Check operator >=")
+{
+	CDate date1(3, Month::JANUARY, 1970);
+	CDate date2(5, Month::JANUARY, 1970);
+	CDate date3(3, Month::JANUARY, 1970);
+	/*Проверка операторов сравнения*/
 	REQUIRE(date2 >= date1);
 	REQUIRE(date1 >= date3);
 	REQUIRE(!(date1 >= date2));
+};
+
+TEST_CASE("Check operator ==")
+{
+	CDate date1(3, Month::JANUARY, 1970);
+	CDate date2(5, Month::JANUARY, 1970);
+	CDate date3(3, Month::JANUARY, 1970);
+	/*Проверка операторов сравнения*/
 	REQUIRE(date1 == date3);
 	REQUIRE(!(date1 == date2));
+};
+
+TEST_CASE("Check operator !=")
+{
+	CDate date1(3, Month::JANUARY, 1970);
+	CDate date2(5, Month::JANUARY, 1970);
+	CDate date3(3, Month::JANUARY, 1970);
+	/*Проверка операторов сравнения*/
 	REQUIRE(date1 != date2);
 	REQUIRE(!(date1 != date3));
 };
