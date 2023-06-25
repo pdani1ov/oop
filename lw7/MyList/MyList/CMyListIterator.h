@@ -64,7 +64,7 @@ CListIterator<CMyListMember, Data>& CListIterator<CMyListMember, Data>::operator
 {
 	if (m_pNode->prev != nullptr)
 	{
-		m_pNode = m_pNode->prev.get();
+		m_pNode = m_pNode->prev;
 	}
 	return *this;
 }
@@ -74,7 +74,7 @@ CListIterator<CMyListMember, Data>& CListIterator<CMyListMember, Data>::operator
 {
 	if (m_pNode->next != nullptr)
 	{
-		m_pNode = m_pNode->next.get();
+		m_pNode = m_pNode->next;
 	}
 	return *this;
 }

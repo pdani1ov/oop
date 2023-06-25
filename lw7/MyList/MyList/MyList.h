@@ -12,20 +12,33 @@ class CMyList
 		{
 		}
 
-		CMyListMember(const T& data, std::shared_ptr<CMyListMember> prev, std::shared_ptr<CMyListMember> next)
+		CMyListMember(const T& data, CMyListMember* prev, CMyListMember* next)
 			: data(data), prev(prev), next(next)
 		{
 		}
 
-		CMyListMember(const T&& data, std::shared_ptr<CMyListMember> prev, std::shared_ptr<CMyListMember> next)
+		CMyListMember(const T&& data, CMyListMember* prev, CMyListMember* next)
 			: data(data), prev(prev), next(next)
 		{
+		}
+
+		~CMyListMember()
+		{
+			if (!next)
+			{
+				delete next;
+			}
+			if (!prev)
+			{
+				delete prev;
+			}
+			
 		}
 
 		std::optional<T> data;
 
-		std::shared_ptr<CMyListMember> prev;
-		std::shared_ptr<CMyListMember> next;
+		CMyListMember* prev;
+		CMyListMember* next;
 	};
 
 public:
@@ -61,16 +74,25 @@ public:
 private:
 	size_t m_size;
 
-	std::shared_ptr<CMyListMember> m_first;
-	std::shared_ptr<CMyListMember> m_last;
+	CMyListMember* m_first;
+	CMyListMember* m_last;
 };
 
 template <typename T>
 CMyList<T>::CMyList()
-	: m_size(0), m_first(std::make_shared<CMyListMember>()), m_last(std::make_shared<CMyListMember>())
+	: m_size(0)
 {
-	m_first->next = m_last;
-	m_last->prev = m_first;
+	try
+	{
+		m_first = new CMyListMember;
+		m_last = new CMyListMember;
+		m_first->next = m_last;
+		m_last->prev = m_first;
+	}
+	catch (const std::exception& error)
+	{
+		throw error;
+	}
 }
 
 template <typename T>
@@ -108,44 +130,40 @@ CMyList<T>& CMyList<T>::operator=(const CMyList<T>& rhs)
 template <typename T>
 void CMyList<T>::Clear()
 {
-	std::shared_ptr<CMyListMember> node = m_first->next;
-
-	while (node->next != nullptr)
+	if (m_first->next != m_last)
 	{
-		m_first->next = node->next;
-		node->next->prev = m_first;
-
+		CMyListMember* node = m_first->next;
+		m_first->next = m_last;
 		node->prev = nullptr;
-		node->next = nullptr;
+		m_last->prev->next = nullptr;
+		delete node;
 
-		node = m_first->next;
+		m_size = 0;
 	}
-
-	m_size = 0;
 }
 
 template <typename T>
 typename CMyList<T>::Iterator CMyList<T>::begin()
 {
-	return Iterator(m_first->next.get());
+	return Iterator(m_first->next);
 }
 
 template <typename T>
 typename CMyList<T>::Iterator CMyList<T>::end()
 {
-	return Iterator(m_last.get());
+	return Iterator(m_last);
 }
 
 template <typename T>
 typename CMyList<T>::ConstIterator CMyList<T>::cbegin() const
 {
-	return ConstIterator(m_first->next.get());
+	return ConstIterator(m_first->next);
 }
 
 template <typename T>
 typename CMyList<T>::ConstIterator CMyList<T>::cend() const
 {
-	return ConstIterator(m_last.get());
+	return ConstIterator(m_last);
 }
 
 template <typename T>
@@ -163,10 +181,10 @@ typename CMyList<T>::ReverseIterator CMyList<T>::rend()
 template <typename T>
 typename CMyList<T>::Iterator CMyList<T>::Insert(Iterator const& pos, T const& data)
 {
-	auto newNode = std::make_shared<CMyListMember>(data, nullptr, nullptr);
+	auto newNode = new CMyListMember(data, nullptr, nullptr);
 
-	std::shared_ptr<CMyListMember> beforeNew = pos.m_pNode->prev;
-	std::shared_ptr<CMyListMember> afterNew = beforeNew->next;
+	CMyListMember* beforeNew = pos.m_pNode->prev;
+	CMyListMember* afterNew = beforeNew->next;
 
 	newNode->prev = beforeNew;
 	newNode->next = afterNew;
@@ -176,14 +194,14 @@ typename CMyList<T>::Iterator CMyList<T>::Insert(Iterator const& pos, T const& d
 
 	++m_size;
 
-	return Iterator(newNode.get());
+	return Iterator(newNode);
 }
 
 template <typename T>
 typename CMyList<T>::Iterator CMyList<T>::Erase(Iterator const& pos)
 {
-	std::shared_ptr<CMyListMember> beforePos = pos.m_pNode->prev;
-	std::shared_ptr<CMyListMember> afterPos = pos.m_pNode->next;
+	CMyListMember* beforePos = pos.m_pNode->prev;
+	CMyListMember* afterPos = pos.m_pNode->next;
 
 	pos.m_pNode->prev = nullptr;
 	pos.m_pNode->next = nullptr;
@@ -193,13 +211,13 @@ typename CMyList<T>::Iterator CMyList<T>::Erase(Iterator const& pos)
 
 	--m_size;
 
-	return Iterator(afterPos.get());
+	return Iterator(afterPos);
 }
 
 template <typename T>
 void CMyList<T>::PushFront(const T& data)
 {
-	auto newNode = std::make_shared<CMyListMember>(data, m_first, m_first->next);
+	auto newNode = new CMyListMember(data, m_first, m_first->next);
 
 	m_first->next = newNode;
 	newNode->next->prev = newNode;
@@ -210,7 +228,7 @@ void CMyList<T>::PushFront(const T& data)
 template <typename T>
 void CMyList<T>::PushBack(const T& data)
 {
-	auto newNode = std::make_shared<CMyListMember>(data, m_last->prev, m_last);
+	auto newNode = new CMyListMember(data, m_last->prev, m_last);
 
 	m_last->prev = newNode;
 	newNode->prev->next = newNode;
